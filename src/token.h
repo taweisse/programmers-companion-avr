@@ -4,6 +4,8 @@
 #define _NUMBER_H
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #define VAL(tok_ref) ((tok_ref)->value.val)
 
@@ -21,15 +23,14 @@ typedef enum TokenType {
     TOK_BITWISE_AND,
     TOK_BITWISE_XOR,
     TOK_BITWISE_OR,
-    TOK_BITWISE_XOR,
     TOK_INTEGER
 } TokenType;
 
 typedef struct Token {
-    Token *next;
-    Token *pre;
-    Token *left;
-    Token *right;
+    struct Token *next;
+    struct Token *pre;
+    struct Token *left;
+    struct Token *right;
 
     TokenType type;
     union {
@@ -47,10 +48,14 @@ typedef enum MathErr {
 
 void token_set_operator(Token *tok, TokenType type);
 void token_set_integer(Token *tok, uint64_t val);
+void token_reset(Token *tok);
 
 MathErr tokens_add(const Token *tok1, const Token *tok2, Token *result);
 MathErr tokens_sub(const Token *tok1, const Token *tok2, Token *result);
 MathErr tokens_mul(const Token *tok1, const Token *tok2, Token *result);
 MathErr tokens_div(const Token *tok1, const Token *tok2, Token *result);
+
+bool token_to_str(Token *tok, char *buff, size_t buff_size);
+const char * token_set_from_str(Token *tok, const char *buff);
 
 #endif // _NUMBER_H

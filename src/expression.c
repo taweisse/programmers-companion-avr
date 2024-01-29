@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <memory.h>
+#include <stdio.h>
 
 #define EXPR_POOL_SIZE 5
 #define TOKEN_POOL_SIZE 128
@@ -37,7 +38,7 @@ get_new_token() {
     return new_tok;
 }
 
-append(Expression *expr, Token *tok) {
+bool expression_append_token(Expression *expr, Token *tok) {
     if (expr->start == NULL) {
         expr->start = tok;
     } else {
@@ -48,18 +49,67 @@ append(Expression *expr, Token *tok) {
 
         end->next = tok;
     }
+
+    return true; // TODO: Can this fail if we run out of free tokens?
 }
 
 bool
-expression_append_token(Expression *expr, TokenType type) {
+expression_append_operator(Expression *expr, TokenType type) {
     Token *new_tok = get_new_token();
     token_set_operator(new_tok, type);
-    append(expr, new_tok);
+    return expression_append_token(expr, new_tok);
 }
 
 bool
 expression_append_int(Expression *expr, uint64_t value) {
     Token *new_tok = get_new_token();
     token_set_integer(new_tok, value);
-    append(expr, new_tok);
+    return expression_append_token(expr, new_tok);
+}
+
+void
+expression_reset(Expression *expr) {
+    memset(expr, 0, sizeof(Expression));
+}
+
+bool
+expression_set_from_str(Expression *expr, const char *str) {
+    // Reset the expression.
+    expression_reset(expr);
+
+    const char *cur_pos = str;
+    int token_ct = 0;
+    while (*cur_pos != '\0') {
+        // Reset the token.
+        token_reset(&token_pool[token_ct]);
+
+        const char *new_pos = token_set_from_str(&token_pool[token_ct], cur_pos);
+        if (new_pos == cur_pos) {
+            // No characters were consumed, parse error!
+            return false;
+        }
+
+        expression_append_token(expr, &token_pool[token_ct]);
+        cur_pos = new_pos;
+        token_ct += 1;
+    }
+
+    return true;
+}
+
+bool
+expression_print(Expression *expr) {
+    char buff[21]; // Large enough to hold UINT64_MAX.
+
+    Token *cur_tok = expr->start;
+    while (cur_tok != NULL) {
+        if (! token_to_str(cur_tok, buff, sizeof(buff) / sizeof(buff[0]))) {
+            return false;
+        }
+        fprintf(stdout, "%s ", buff);
+        cur_tok = cur_tok->next;
+    }
+
+    fprintf(stdout, "\n");
+    return true;
 }
