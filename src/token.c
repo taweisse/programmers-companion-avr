@@ -8,6 +8,30 @@
 #include <string.h>
 #include <assert.h>
 
+#define TOKEN_POOL_SIZE 256
+
+struct Token {
+    struct Token *next;
+    struct Token *pre;
+    struct Token *left;
+    struct Token *right;
+
+    TokenType type;
+    union {
+        uint64_t val;
+        uint8_t bytes[8];
+    } value;
+};
+
+// Global reference to the token pool.
+Token g_token_pool[TOKEN_POOL_SIZE];
+
+Token *
+token_get_pool(size_t *pool_size) {
+    *pool_size = sizeof(g_token_pool) / sizeof(g_token_pool[0]);
+    return g_token_pool;
+}
+
 // Note: str should be large enough to hold the maximum length string possible.
 // 20 characters plus null terminator will safely represent UINT64_MAX.
 bool
@@ -162,9 +186,7 @@ token_reset(Token *tok) {
 MathErr
 tokens_add(const Token *tok1, const Token *tok2, Token *result) {
     // Sanity check.
-    if (tok1->type != TOK_INTEGER && tok2->type != TOK_INTEGER) {
-        return MATH_ERR_OPERAND_NAN;
-    }
+    assert(tok1->type == TOK_INTEGER && tok2->type == TOK_INTEGER);
 
     uint64_t result_val = VAL(tok1) + VAL(tok2);
     token_set_integer(result, result_val);
@@ -175,9 +197,7 @@ tokens_add(const Token *tok1, const Token *tok2, Token *result) {
 MathErr
 tokens_sub(const Token *tok1, const Token *tok2, Token *result) {
     // Sanity check.
-    if (tok1->type != TOK_INTEGER || tok2->type > TOK_INTEGER) {
-        return MATH_ERR_OPERAND_NAN;
-    }
+    assert(tok1->type == TOK_INTEGER && tok2->type == TOK_INTEGER);
 
     uint64_t result_val = VAL(tok1) - VAL(tok2);
     token_set_integer(result, result_val);
@@ -187,9 +207,7 @@ tokens_sub(const Token *tok1, const Token *tok2, Token *result) {
 MathErr
 tokens_mul(const Token *tok1, const Token *tok2, Token *result) {
     // Sanity check.
-    if (tok1->type != TOK_INTEGER || tok2->type != TOK_INTEGER) {
-        return MATH_ERR_OPERAND_NAN;
-    }
+    assert(tok1->type == TOK_INTEGER && tok2->type == TOK_INTEGER);
 
     uint64_t result_val = VAL(tok1) * VAL(tok2);
     token_set_integer(result, result_val);
@@ -199,9 +217,7 @@ tokens_mul(const Token *tok1, const Token *tok2, Token *result) {
 MathErr
 tokens_div(const Token *tok1, const Token *tok2, Token *result) {
     // Sanity check.
-    if (tok1->type > TOK_INTEGER || tok2->type != TOK_INTEGER) {
-        return MATH_ERR_OPERAND_NAN;
-    }
+    assert(tok1->type == TOK_INTEGER && tok2->type == TOK_INTEGER);
 
     uint64_t result_val = VAL(tok1) / VAL(tok2);
     token_set_integer(result, result_val);

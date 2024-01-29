@@ -5,7 +5,7 @@
 #include "expression.h"
 
 int main(int argc, char *argv[]) {
-    Expression *expr = expression_new();
+    Expression *expr = expression_take_reference();
     expression_append_int(expr, 24);
     expression_append_operator(expr, TOK_PLUS);
     expression_append_int(expr, 37);

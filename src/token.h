@@ -26,18 +26,7 @@ typedef enum TokenType {
     TOK_INTEGER
 } TokenType;
 
-typedef struct Token {
-    struct Token *next;
-    struct Token *pre;
-    struct Token *left;
-    struct Token *right;
-
-    TokenType type;
-    union {
-        uint64_t val;
-        uint8_t bytes[8];
-    } value;
-} Token;
+typedef struct Token Token;
 
 typedef enum MathErr {
     MATH_ERR_OK = 0,
@@ -45,6 +34,8 @@ typedef enum MathErr {
     MATH_ERR_OPERAND_NAN,
     MATH_ERR_PARENTHESIS_MISMATCH
 } MathErr;
+
+Token * token_get_pool(size_t *pool_size);
 
 void token_set_operator(Token *tok, TokenType type);
 void token_set_integer(Token *tok, uint64_t val);
