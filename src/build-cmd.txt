@@ -1,1 +1,1 @@
-gcc -I/mnt/c/Users/tawei/OneDrive/Desktop/programmers-companion/Software/programmers-companion-avr/src/ test_program.c /mnt/c/Users/tawei/OneDrive/Desktop/programmers-companion/Software/programmers-companion-avr/src/token.c /mnt/c/Users/tawei/OneDrive/Desktop/programmers-companion/Software/programmers-companion-avr/src/expression.c -o test-program
+gcc /mnt/c/Users/tawei/OneDrive/Desktop/programmers-companion/Software/programmers-companion-avr/src/expression.c test_program.c -o test-program

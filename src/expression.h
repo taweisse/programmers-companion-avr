@@ -44,4 +44,6 @@ void expression_reset(Expression *expr);
 bool expression_set_from_str(Expression *expr, const char *str);
 bool expression_print(Expression *expr);
 
+MathErr expression_evaluate(Expression *expr);
+
 #endif

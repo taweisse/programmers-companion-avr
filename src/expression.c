@@ -20,10 +20,7 @@ typedef struct Token {
     struct Token *right;
 
     TokenType type;
-    union {
-        uint64_t val;
-        uint8_t bytes[8];
-    } value;
+    uint64_t value;
 } Token;
 
 // Note: str should be large enough to hold the maximum length string possible.
@@ -153,7 +150,7 @@ token_set_from_str(Token *tok, const char *buff) {
             assert(sizeof(unsigned long long) == sizeof(uint64_t));
             
             char *end_ptr;
-            tok->value.val = strtoull(num_start, &end_ptr, base);
+            tok->value = strtoull(num_start, &end_ptr, base);
             tok->type = TOK_INTEGER;
 
             return end_ptr;
@@ -169,7 +166,7 @@ token_set_operator(Token *tok, TokenType type) {
 void
 token_set_integer(Token *tok, uint64_t val) {
     tok->type = TOK_INTEGER;
-    tok->value.val = val;
+    tok->value = val;
 }
 
 void
@@ -184,7 +181,7 @@ tokens_add(const Token *tok1, const Token *tok2, Token *result) {
         return MATH_ERR_OPERAND_NAN;
     }
 
-    uint64_t result_val = tok1->value.val + tok2->value.val;
+    uint64_t result_val = tok1->value + tok2->value;
     token_set_integer(result, result_val);
 
     return MATH_ERR_OK;
@@ -197,7 +194,7 @@ tokens_sub(const Token *tok1, const Token *tok2, Token *result) {
         return MATH_ERR_OPERAND_NAN;
     }
 
-    uint64_t result_val = tok1->value.val - tok2->value.val;
+    uint64_t result_val = tok1->value; - tok2->value;
     token_set_integer(result, result_val);
     return MATH_ERR_OK;
 }
@@ -209,7 +206,7 @@ tokens_mul(const Token *tok1, const Token *tok2, Token *result) {
         return MATH_ERR_OPERAND_NAN;
     }
 
-    uint64_t result_val = tok1->value.val * tok2->value.val;
+    uint64_t result_val = tok1->value * tok2->value;
     token_set_integer(result, result_val);
     return MATH_ERR_OK;
 }
@@ -221,7 +218,7 @@ tokens_div(const Token *tok1, const Token *tok2, Token *result) {
         return MATH_ERR_OPERAND_NAN;
     }
 
-    uint64_t result_val = tok1->value.val / tok2->value.val;
+    uint64_t result_val = tok1->value / tok2->value;
     token_set_integer(result, result_val);
     return MATH_ERR_OK;
 }
@@ -324,4 +321,43 @@ expression_print(Expression *expr) {
 
     fprintf(stdout, "\n");
     return true;
+}
+
+MathErr
+expression_evaluate(Expression *expr) {
+    // Use a stack to evaluate atomic sub-expressions, I.E. parenthesis.
+    Token *eval_stack[MAX_TOKENS_PER_EXPR + 1];
+    size_t stack_idx = 0;
+
+    Token *cur_tok = expr->start;
+    while (cur_tok != NULL) {
+        if (cur_tok->type == TOK_LEFT_PARENTHESIS) {
+            // Push the start of the sub expression onto the stack.
+            eval_stack[stack_idx] = cur_tok;
+            stack_idx += 1;
+        } else if (cur_tok->type == TOK_RIGHT_PARENTHESIS) {
+            // Pop the most recent left parenthesis from the stack and evaluate
+            // the sub expression.
+            stack_idx -= 1;
+
+            // If there is nothing left to pop, we have a parenthesis mismatch.
+            if (stack_idx < 0) {
+                return MATH_ERR_PARENTHESIS_MISMATCH;
+            }
+
+            Token *start = eval_stack[stack_idx];
+            // TODO: Calculate between start and cur_tok here! Dont forget to 
+            //  remove parenthesis tokens first.
+        }
+
+        cur_tok = cur_tok->next;
+    }
+
+    // If there are any items in the stack once we reach the end of the
+    // expression, we know there was a mismatched parenthesis.
+    if (stack_idx > 0) {
+        return MATH_ERR_PARENTHESIS_MISMATCH;
+    }
+
+    // TODO: Calculate the final result from the expression start to end.
 }

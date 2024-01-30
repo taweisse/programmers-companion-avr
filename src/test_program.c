@@ -15,4 +15,7 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "Expression parse error!\n");
     }
     expression_print(expr);
+
+    MathErr res = expression_evaluate(expr);
+    fprintf(stdout, "Result: %d\n", res);
 }
