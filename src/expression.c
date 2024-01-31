@@ -231,6 +231,7 @@ struct Expression {
     size_t size;
     Token tok_pool[MAX_TOKENS_PER_EXPR];
     Token *start;
+    Token *end;
 };
 
 // Global expression reference.
@@ -253,13 +254,11 @@ bool
 expression_append_token(Expression *expr, Token *tok) {
     if (expr->start == NULL) {
         expr->start = tok;
+        expr->end = expr->start;
     } else {
-        Token *end = expr->start;
-        while (end->next != NULL) {
-            end = end->next;
-        }
-
-        end->next = tok;
+        tok->pre = expr->end;
+        expr->end->next = tok;
+        expr->end = tok;
     }
 
     expr->size += 1;
@@ -307,11 +306,11 @@ expression_set_from_str(Expression *expr, const char *str) {
 }
 
 bool
-expression_print(Expression *expr) {
+subexpression_print(Token *start, Token *end) {
     char buff[21]; // Large enough to hold UINT64_MAX.
 
-    Token *cur_tok = expr->start;
-    while (cur_tok != NULL) {
+    Token *cur_tok = start;
+    while (cur_tok != end) {
         if (! token_to_str(cur_tok, buff, sizeof(buff) / sizeof(buff[0]))) {
             return false;
         }
@@ -321,6 +320,28 @@ expression_print(Expression *expr) {
 
     fprintf(stdout, "\n");
     return true;
+}
+
+bool
+expression_print(Expression *expr) {
+    subexpression_print(expr->start, NULL);
+}
+
+// Builds the expression tree in-place, from [start, end]
+void
+build_tree(Token *start, Token *end) {
+    fprintf(stdout, "Building tree for: ");
+    subexpression_print(start, end);
+}
+
+void
+build_addition_subtraction_tree(Token *start, Token *end) {
+
+}
+
+void
+build_multiplication_division_tree(Token *start, Token *end) {
+
 }
 
 MathErr
@@ -345,11 +366,41 @@ expression_evaluate(Expression *expr) {
                 return MATH_ERR_PARENTHESIS_MISMATCH;
             }
 
-            Token *start = eval_stack[stack_idx];
-            // TODO: Calculate between start and cur_tok here! Dont forget to 
-            //  remove parenthesis tokens first.
-        }
+            // Remove left parenthesis.
+            Token *start_paren = eval_stack[stack_idx];
+            Token *start = start_paren->next;
+            start->pre = start_paren->pre;
 
+            if (start_paren->pre == NULL) {
+                expr->start = start;
+            } else {
+                start->pre->next = start;
+            }
+
+            // Remove right parenthesis.
+            Token *end = cur_tok->pre;
+
+            // Can be NULL if there are empty parenthesis at the start of the
+            // expression.
+            if (end != NULL) {
+                end->next = cur_tok->next;
+            } else {
+                expr->start = cur_tok->next;
+            }
+
+            // Can be NULL if closing parenthesis at the end of the expression.
+            if (cur_tok->next != NULL) {
+                cur_tok->next->pre = end;
+            } else {
+                expr->end = end;
+            }
+
+            // Calculate the partial tree for the sub expression.
+            if (start < end) {
+                build_tree(start, end->next);
+            }
+        }
+    
         cur_tok = cur_tok->next;
     }
 
@@ -359,5 +410,8 @@ expression_evaluate(Expression *expr) {
         return MATH_ERR_PARENTHESIS_MISMATCH;
     }
 
-    // TODO: Calculate the final result from the expression start to end.
+    // Calculate the rest of the expression.
+    build_tree(expr->start, NULL);
+
+    return MATH_ERR_OK;
 }
