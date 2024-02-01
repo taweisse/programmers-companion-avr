@@ -13,9 +13,27 @@
 // EXPRESSION TOKENS
 //==============================================================================
 
+// Represents a single token of an expression. For example, in the expression
+// 12 * (3 + 4), '12', '*', '(', '3', '+', '4', and ')' are the tokens which
+// make it up. Each token has 4 connections to other tokens to form a graph. The
+// graph is used to parse the expression tree for evaluation.
+//
+// Prior to parsing, the expression can be thought of as a bidirectional linked
+// list of tokens. The *pre and *next pointers point to the previous and next
+// token in the list, respectively. 
+//
+// During parsing, a binary tree is constructed in-place from the linked list
+// using the *left and *right pointers, until we are left with a fully parsed
+// expression tree ready for evaluation.
+//
+// The value field can be thought of as metadata whose information differs based
+// on the token type. For TOK_INTEGER, this value is the literal numeric value
+// of the integer that the token represents. However, for operator tokens, the
+// value field holds a boolean (0 = false, 1 = true) indicating weather it can
+// be treated as a value, IE if it has been previously parsed into a sub-tree.
 typedef struct Token {
-    struct Token *next;
     struct Token *pre;
+    struct Token *next;
     struct Token *left;
     struct Token *right;
 
@@ -327,21 +345,88 @@ expression_print(Expression *expr) {
     subexpression_print(expr->start, NULL);
 }
 
+// Returns true if the token can be treated as a fully-parsed value, either an
+// integer or a previously parsed sub-tree.
+bool
+is_parsed(Token *tok) {
+    if (tok->type == TOK_INTEGER || tok->value == 1) {
+        return true;
+    }
+
+    return false;
+}
+
+Token *
+build_unary_positive_negative_not_operation(Token *start, MathErr *err) {
+
+}
+
+Token *
+build_multiplication_division_operation(Token *start, MathErr *err) {
+    // Ensure that we have a valid left operand.
+    if (! is_parsed(start)) {
+        return MATH_ERR_INVALID_EXPR;
+    }
+
+    Token *left_tree = start;
+    if (left_tree->next == NULL) {
+        // We are at the end of the expression.
+        return left_tree;
+
+    } else if (left_tree->next->type != TOK_TIMES && left_tree->next->type != TOK_DIVIVED_BY) {
+        // This is not a multiplication or division operation.
+        return left_tree;
+    }
+
+    
+
+    if (! is_parsed)
+}
+
+Token *
+build_addition_subtraction_operation(Token *start, MathErr *err) {
+    Token *left_tree = build_multiplication_division_operation(start, err);
+    
+    if (left_tree->next->type != TOK_PLUS && left_tree->next->type != TOK_MINUS) {
+        // This is not an addition or subtraction operation.
+        return left_tree;
+    }
+    
+    Token *right_tree = build_multiplication_division_operation(start, err);
+    // TODO: Fold the tree up with the operator on top. Make it a function.
+}
+
+Token *
+build_bitwise_shift_operation(Token *start, MathErr *err) {
+
+}
+
+Token *
+build_bitwise_and_operation(Token *start, MathErr *err) {
+
+}
+
+Token *
+build_bitwise_xor_operation(Token *start, MathErr *err) {
+
+}
+
+Token *
+build_bitwise_or_operation(Token *start, MathErr *err) {
+
+}
+
 // Builds the expression tree in-place, from [start, end]
 void
 build_tree(Token *start, Token *end) {
     fprintf(stdout, "Building tree for: ");
     subexpression_print(start, end);
-}
 
-void
-build_addition_subtraction_tree(Token *start, Token *end) {
-
-}
-
-void
-build_multiplication_division_tree(Token *start, Token *end) {
-
+    Token *cur_tok = start;
+    while (cur_tok != NULL) {
+        MathErr err;
+        cur_tok = build_addition_subtraction_operation(start, &err);
+    }
 }
 
 MathErr
