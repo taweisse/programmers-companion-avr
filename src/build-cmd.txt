@@ -1,1 +1,0 @@
-gcc /mnt/c/Users/tawei/OneDrive/Desktop/programmers-companion/Software/programmers-companion-avr/src/expression.c test_program.c -o test-program

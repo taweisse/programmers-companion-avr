@@ -1,28 +1,28 @@
 // Number tests.
 
 #include "unity.h"
-#include "number.h"
+#include "token.h"
 #include "inttypes.h"
 
 void setUp() {}
 void tearDown() {}
 
 void unsigned_byte_arithmetic() {
-    Number num21, num5, num250, result;
+    Token num21, num5, num250, result;
     number_set_from_uint(&num21, 21);
     number_set_from_uint(&num5, 5);
     number_set_from_uint(&num250, 250);
 
     // Test basic addition.
-    number_add(&num21, &num5, &result, SIZE_MODE_BYTE);
+    number_add(&num21, &num5, &result);
     TEST_ASSERT_EQUAL_UINT8(21 + 5, VAL(&result));
 
     // Test addition resulting in an overflow.
-    number_add(&num250, &num21, &result, SIZE_MODE_BYTE);
+    number_add(&num250, &num21, &result);
     TEST_ASSERT_EQUAL_UINT8(250 + 21, VAL(&result));
 
     // Test basic subtraction.
-    number_sub(&num21, &num5, &result, SIZE_MODE_BYTE);
+    number_sub(&num21, &num5, &result);
     TEST_ASSERT_EQUAL_UINT8(21 - 5, VAL(&result));
 
     // Test subtraction resulting in an underflow.
@@ -44,7 +44,7 @@ void unsigned_byte_arithmetic() {
 
 void unsigned_word_arithmetic() {
     uint16_t val20k = 20000, val10k = 10000, val60k = 60000;
-    Number num20k, num10k, num60k, result;
+    Token num20k, num10k, num60k, result;
     number_set_from_uint(&num20k, val20k);
     number_set_from_uint(&num10k, val10k);
     number_set_from_uint(&num60k, val60k);
@@ -80,7 +80,7 @@ void unsigned_word_arithmetic() {
 
 void unsigned_dword_arithmetic() {
     uint32_t val500mil = 500000000, val1mil = 1000000, val4bil = 4000000000;
-    Number num500mil, num1mil, num4bil, result;
+    Token num500mil, num1mil, num4bil, result;
     number_set_from_uint(&num500mil, val500mil);
     number_set_from_uint(&num1mil, val1mil);
     number_set_from_uint(&num4bil, val4bil);
@@ -116,7 +116,7 @@ void unsigned_dword_arithmetic() {
 
 void unsigned_qword_arithmetic() {
     uint64_t val500quad = 500000000000000000, val100tril = 100000000000000, val18quint = 18000000000000000000u;
-    Number num500quad, num100tril, num18quint, result;
+    Token num500quad, num100tril, num18quint, result;
     number_set_from_uint(&num500quad, val500quad);
     number_set_from_uint(&num100tril, val100tril);
     number_set_from_uint(&num18quint, val18quint);

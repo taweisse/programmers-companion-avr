@@ -1,0 +1,8 @@
+
+typedef enum MathErr {
+    MATH_ERR_OK = 0,
+    MATH_ERR_DIV_BY_ZERO,
+    MATH_ERR_OPERAND_NAN,
+    MATH_ERR_PARENTHESIS_MISMATCH,
+    MATH_ERR_MALFORMED_EXPR,
+} MathErr;
